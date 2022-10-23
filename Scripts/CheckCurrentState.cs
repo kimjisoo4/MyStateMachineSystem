@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace KimScor.StateMachine
 {
-    public abstract class CheckCurrentState<T> : Decision<T>
+    public abstract class CheckCurrentState<T> : Decision<T> where T : MonoBehaviour
     {
         [SerializeField] private List<State<T>> _States;
         public override bool Decide(StateMachine<T> stateMachine)

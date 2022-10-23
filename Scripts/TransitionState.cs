@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace KimScor.StateMachine
 {
-    public abstract class TransitionState<T> : ScriptableObject 
+    public abstract class TransitionState<T> : ScriptableObject where T : MonoBehaviour
     {
         public List<TransitionOnlyTrue<T>> transitions;
 

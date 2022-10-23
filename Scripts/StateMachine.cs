@@ -4,9 +4,8 @@ using System.Collections.Generic;
 
 namespace KimScor.StateMachine
 {
-
     [System.Serializable]
-    public class StateMachine<T>
+    public class StateMachine<T> where T : MonoBehaviour
     {
         [Header(" 기본 상태 ")]
         [SerializeField] private State<T> _DefaultState;
@@ -24,10 +23,7 @@ namespace KimScor.StateMachine
         [HideInInspector] public bool[] isActive;
 
         [SerializeField] private T _Owner;
-        [SerializeField] private Transform _Transform;
         public T Owner => _Owner;
-
-        public Transform Transform => _Transform;
 
         private float _DeltaTime;
 
@@ -35,13 +31,12 @@ namespace KimScor.StateMachine
         {
 
         }
-        public StateMachine(T owner, Transform transform, State<T> defaultState, State<T> remainState, State<T> resetState)
+        public StateMachine(T owner, State<T> defaultState, State<T> remainState, State<T> resetState)
         {
             _DefaultState = defaultState;
             _RemainState = remainState;
             _ResetState = resetState;
             _Owner = owner;
-            _Transform = transform;
 
             TransitionToState(_DefaultState);
         }
@@ -49,9 +44,9 @@ namespace KimScor.StateMachine
         public float DeltaTime => _DeltaTime;
         public float StateTimeElapsed => _StateTimeElapsed;
 
-        public void Setup(Transform transform)
+        public void SetOwner(T newOwner)
         {
-            _Transform = transform;
+            _Owner = newOwner;
 
             TransitionToState(_DefaultState);
         }
@@ -63,6 +58,11 @@ namespace KimScor.StateMachine
             _StateTimeElapsed += _DeltaTime;
 
             _CurrentState.UpdateState(this);
+        }
+
+        public void TransitionToDefaultState()
+        {
+            TransitionToState(_DefaultState);
         }
 
         public void TransitionToState(State<T> nextState)
@@ -92,14 +92,14 @@ namespace KimScor.StateMachine
         {
             if (_CurrentState != null)
             {
-                _CurrentState.ExitAction(this);
+                _CurrentState.ExitState(this);
             }
 
             _StateTimeElapsed = 0f;
 
             _CurrentState = nextState;
 
-            _CurrentState.EnterAction(this);
+            _CurrentState.EnterState(this);
 
             isActive = new bool[_CurrentState.GetDecisionActionCount];
 

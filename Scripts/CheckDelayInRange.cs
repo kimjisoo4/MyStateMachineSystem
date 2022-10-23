@@ -2,7 +2,7 @@
 
 namespace KimScor.StateMachine
 {
-    public abstract class CheckDelayInRange<T> : Decision<T>
+    public abstract class CheckDelayInRange<T> : Decision<T> where T : MonoBehaviour
     {
         [SerializeField] private float _MinRange = 0f;
         [SerializeField] private float _MaxRange = 1f;

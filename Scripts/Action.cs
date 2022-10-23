@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace KimScor.StateMachine
 {
-    public abstract class Action<T> : ScriptableObject 
+    public abstract class Action<T> : ScriptableObject where T : MonoBehaviour
     {
         public abstract void EnterAction(StateMachine<T> stateMachine);
         public abstract void UpdateAction(StateMachine<T> stateMachine);

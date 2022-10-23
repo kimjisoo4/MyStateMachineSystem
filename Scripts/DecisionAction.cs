@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace KimScor.StateMachine
 {
     [System.Serializable]
-    public class DecisionAction<T>
+    public class DecisionAction<T> where T : MonoBehaviour
     {
         public string Contents = " Write your explanation here. ";
         public bool isOnce = false;

@@ -1,7 +1,9 @@
-﻿namespace KimScor.StateMachine
+﻿using UnityEngine;
+
+namespace KimScor.StateMachine
 {
     [System.Serializable]
-    public class TransitionOnlyTrue<T>
+    public class TransitionOnlyTrue<T> where T : MonoBehaviour
     {
         public Decisions<T> decisions;
         public State<T> trueState;

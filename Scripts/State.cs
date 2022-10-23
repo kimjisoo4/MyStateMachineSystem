@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace KimScor.StateMachine
 {
-    public abstract class State<T> : ScriptableObject
+    public abstract class State<T> : ScriptableObject where T : MonoBehaviour
     {
         public string StateName = "New State";
         public Color Color = Color.white;
@@ -18,6 +18,7 @@ namespace KimScor.StateMachine
         public int GetDecisionActionCount => _DecisionActions.Count;
         public IReadOnlyList<DecisionAction<T>> DecisionActions => _DecisionActions;
 
+        #region EDITOR ONLY
 #if UNITY_EDITOR
         private void OnValidate()
         {
@@ -58,6 +59,9 @@ namespace KimScor.StateMachine
             {
                 action.DrawGizmos(transform);
             }
+
+            Gizmos.color = Color;
+            Gizmos.DrawWireSphere(transform.position + Vector3.up * 2f, 0.1f);
         }
         public void DrawGizmosSelected(Transform transform)
         {
@@ -73,11 +77,33 @@ namespace KimScor.StateMachine
             {
                 action.DrawGizmosSelected(transform);
             }
+
+            Gizmos.color = Color;
+            Gizmos.DrawSphere(transform.position + Vector3.up * 2f, 0.1f);
         }
 #endif
+        #endregion
 
+        public void EnterState(StateMachine<T> stateMachine)
+        {
+            EnterTransitions(stateMachine);
+            EnterActions(stateMachine);
 
-        public void EnterAction(StateMachine<T> stateMachine)
+        }
+        public void ExitState(StateMachine<T> stateMachine)
+        {
+            ExitTransitions(stateMachine);
+            ExitActions(stateMachine);
+        }
+        private void EnterTransitions(StateMachine<T> stateMachine)
+        {
+            foreach (Transition<T> transition in _Transitions)
+            {
+                transition.EnterTransition(stateMachine);
+            }
+        }
+            
+        private void EnterActions(StateMachine<T> stateMachine)
         {
             foreach (Action<T> action in _EarlyActions)
             {
@@ -91,9 +117,16 @@ namespace KimScor.StateMachine
             {
                 action.EnterAction(stateMachine);
             }
-
         }
-        public void ExitAction(StateMachine<T> stateMachine)
+
+        private void ExitTransitions(StateMachine<T> stateMachine)
+        {
+            foreach (Transition<T> transition in _Transitions)
+            {
+                transition.ExitTransition(stateMachine);
+            }
+        }
+        private void ExitActions(StateMachine<T> stateMachine)
         {
             foreach (Action<T> action in _EarlyActions)
             {

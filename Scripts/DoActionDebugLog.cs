@@ -2,7 +2,7 @@
 
 namespace KimScor.StateMachine
 {
-    public class DoActionDebugLog<T> : Action<T>
+    public class DoActionDebugLog<T> : Action<T> where T : MonoBehaviour
     {
         [SerializeField] private string _EnterText = "Enter Action";
         [SerializeField] private string _UpdateText = "Update Action";

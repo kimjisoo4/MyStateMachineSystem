@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace KimScor.StateMachine
 {
     [System.Serializable]
-    public class Decisions<T>
+    public class Decisions<T> where T : MonoBehaviour
     {
         public enum LogicGate
         {
@@ -15,6 +16,20 @@ namespace KimScor.StateMachine
         public LogicGate logicGate = LogicGate.And;
         public List<Decision<T>> decisions;
 
+        public void EnterDecisions(StateMachine<T> stateMachine)
+        {
+            foreach (var decision in decisions)
+            {
+                decision.EnterDecide(stateMachine);
+            }
+        }
+        public void ExitDecisions(StateMachine<T> stateMachine)
+        {
+            foreach (var decision in decisions)
+            {
+                decision.ExitDecide(stateMachine);
+            }
+        }
         public bool CheckDecisions(StateMachine<T> stateMachine)
         {
             bool isDecide = false;

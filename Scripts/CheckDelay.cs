@@ -2,7 +2,7 @@
 
 namespace KimScor.StateMachine
 {
-    public abstract class CheckDelay<T> : Decision<T>
+    public abstract class CheckDelay<T> : Decision<T> where T : MonoBehaviour
     {
         [SerializeField] private float _Delay = 0.2f;
 
