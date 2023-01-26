@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace KimScor.StateMachine
+namespace StudioScor.StateMachine
 {
     public abstract class CheckDelay<T> : Decision<T> where T : MonoBehaviour
     {

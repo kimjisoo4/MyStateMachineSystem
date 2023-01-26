@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace KimScor.StateMachine
+namespace StudioScor.StateMachine
 {
     [System.Serializable]
     public class Decisions<T> where T : MonoBehaviour

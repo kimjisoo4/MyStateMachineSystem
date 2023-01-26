@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace KimScor.StateMachine
+namespace StudioScor.StateMachine
 {
     [System.Serializable]
     public class TransitionOnlyTrue<T> where T : MonoBehaviour

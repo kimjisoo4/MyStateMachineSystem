@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace KimScor.StateMachine
+namespace StudioScor.StateMachine
 {
     public class DoActionDebugLog<T> : Action<T> where T : MonoBehaviour
     {
@@ -10,17 +10,17 @@ namespace KimScor.StateMachine
 
         public override void EnterAction(StateMachine<T> stateMachine)
         {
-            Debug.Log("[" + stateMachine.Owner + "] " + _EnterText);
+            Debug.Log("[" + stateMachine.Context + "] " + _EnterText);
         }
 
         public override void ExitAction(StateMachine<T> stateMachine)
         {
-            Debug.Log("[" + stateMachine.Owner + "] " + _UpdateText);
+            Debug.Log("[" + stateMachine.Context + "] " + _UpdateText);
         }
 
         public override void UpdateAction(StateMachine<T> stateMachine)
         {
-            Debug.Log("[" + stateMachine.Owner + "] " + _ExitText);
+            Debug.Log("[" + stateMachine.Context + "] " + _ExitText);
         }
     }
 }

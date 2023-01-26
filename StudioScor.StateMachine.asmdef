@@ -1,6 +1,6 @@
 {
-    "name": "KimScor.StateMachine",
-    "rootNamespace": "",
+    "name": "StudioScor.StateMachine",
+    "rootNamespace": "StudioScor.StateMachine",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],

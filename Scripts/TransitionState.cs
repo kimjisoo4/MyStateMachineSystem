@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-namespace KimScor.StateMachine
+namespace StudioScor.StateMachine
 {
     public abstract class TransitionState<T> : ScriptableObject where T : MonoBehaviour
     {

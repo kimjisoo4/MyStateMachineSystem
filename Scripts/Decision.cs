@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-namespace KimScor.StateMachine
+namespace StudioScor.StateMachine
 {
     public abstract class Decision<T> : ScriptableObject where T : MonoBehaviour
     {

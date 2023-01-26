@@ -1,15 +1,13 @@
 ﻿using System.Collections;
 using UnityEngine;
 
-namespace KimScor.StateMachine
+namespace StudioScor.StateMachine
 {
 
     [System.Serializable]
     public class Transition<T> where T : MonoBehaviour
     {
-#if UNITY_EDITOR
         public string _TransitionName;
-#endif
         public Decisions<T> decisions;
         public State<T> trueState;
         public State<T> falseState;

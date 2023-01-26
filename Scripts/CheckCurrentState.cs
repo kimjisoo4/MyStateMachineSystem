@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-namespace KimScor.StateMachine
+namespace StudioScor.StateMachine
 {
     public abstract class CheckCurrentState<T> : Decision<T> where T : MonoBehaviour
     {

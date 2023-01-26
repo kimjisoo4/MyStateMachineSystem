@@ -1,22 +1,27 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Diagnostics;
 
-namespace KimScor.StateMachine
+namespace StudioScor.StateMachine
 {
     public abstract class State<T> : ScriptableObject where T : MonoBehaviour
     {
+        [Header(" [ State ] ")]
         public string StateName = "New State";
         public Color Color = Color.white;
-
+        [Space(5f)]
         [SerializeField] private List<Action<T>> _EarlyActions;
         [SerializeField] private List<Action<T>> _ProcessActions;
+        [SerializeField] private List<Action<T>> _PhysisActions;
         [SerializeField] private List<Action<T>> _LateActions;
+        [Space(5f)]
+        [SerializeField] private List<DecisionAction<T>> _ConditionActions;
 
+        [Header(" [ Transitions ] ")]
         [SerializeField] private List<Transition<T>> _Transitions;
-        [SerializeField] private List<DecisionAction<T>> _DecisionActions;
-        public int GetDecisionActionCount => _DecisionActions.Count;
-        public IReadOnlyList<DecisionAction<T>> DecisionActions => _DecisionActions;
+
+        public int GetConditionActionCount => _ConditionActions.Count;
 
         #region EDITOR ONLY
 #if UNITY_EDITOR
@@ -43,56 +48,72 @@ namespace KimScor.StateMachine
                 transition._TransitionName = transitionName;
             }
         }
-
-
-        public void DrawGizmos(Transform transform)
-        {
-            foreach (Action<T> action in _EarlyActions)
-            {
-                action.DrawGizmos(transform);
-            }
-            foreach (Action<T> action in _ProcessActions)
-            {
-                action.DrawGizmos(transform);
-            }
-            foreach (Action<T> action in _LateActions)
-            {
-                action.DrawGizmos(transform);
-            }
-
-            Gizmos.color = Color;
-            Gizmos.DrawWireSphere(transform.position + Vector3.up * 2f, 0.1f);
-        }
-        public void DrawGizmosSelected(Transform transform)
-        {
-            foreach (Action<T> action in _EarlyActions)
-            {
-                action.DrawGizmosSelected(transform);
-            }
-            foreach (Action<T> action in _ProcessActions)
-            {
-                action.DrawGizmosSelected(transform);
-            }
-            foreach (Action<T> action in _LateActions)
-            {
-                action.DrawGizmosSelected(transform);
-            }
-
-            Gizmos.color = Color;
-            Gizmos.DrawSphere(transform.position + Vector3.up * 2f, 0.1f);
-        }
 #endif
+
+        [Conditional("UNITY_EDITOR")]
+        public void DrawGizmos(StateMachine<T> stateMachine)
+        {
+#if UNITY_EDITOR
+            foreach (Action<T> action in _EarlyActions)
+            {
+                action.DrawGizmos(stateMachine);
+            }
+            foreach (Action<T> action in _ProcessActions)
+            {
+                action.DrawGizmos(stateMachine);
+            }
+            foreach (Action<T> action in _LateActions)
+            {
+                action.DrawGizmos(stateMachine);
+            }
+#endif
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public void DrawGizmosSelected(StateMachine<T> stateMachine)
+        {
+#if UNITY_EDITOR
+            foreach (Action<T> action in _EarlyActions)
+            {
+                action.DrawGizmosSelected(stateMachine);
+            }
+            foreach (Action<T> action in _ProcessActions)
+            {
+                action.DrawGizmosSelected(stateMachine);
+            }
+            foreach (Action<T> action in _LateActions)
+            {
+                action.DrawGizmosSelected(stateMachine);
+            }
+#endif
+        }
         #endregion
 
         public void EnterState(StateMachine<T> stateMachine)
         {
             EnterTransitions(stateMachine);
             EnterActions(stateMachine);
+        }
+        public void UpdateState(StateMachine<T> stateMachine)
+        {
+            DoActions(stateMachine);
 
+            TryConditionAction(stateMachine);
+        }
+        public void UpdatePhysicsState(StateMachine<T> stateMachine)
+        {
+            DoPhysicsActions(stateMachine);
+        }
+        public void LateState(StateMachine<T> stateMachine)
+        {
+            DoLateActions(stateMachine);
+
+            CheckTransition(stateMachine);
         }
         public void ExitState(StateMachine<T> stateMachine)
         {
             ExitTransitions(stateMachine);
+
             ExitActions(stateMachine);
         }
         private void EnterTransitions(StateMachine<T> stateMachine)
@@ -114,6 +135,10 @@ namespace KimScor.StateMachine
                 action.EnterAction(stateMachine);
             }
             foreach (Action<T> action in _LateActions)
+            {
+                action.EnterAction(stateMachine);
+            }
+            foreach (Action<T> action in _PhysisActions)
             {
                 action.EnterAction(stateMachine);
             }
@@ -140,18 +165,15 @@ namespace KimScor.StateMachine
             {
                 action.ExitAction(stateMachine);
             }
+            foreach (Action<T> action in _PhysisActions)
+            {
+                action.ExitAction(stateMachine);
+            }
         }
 
-        public void UpdateState(StateMachine<T> stateMachine)
-        {
-            DoActions(stateMachine);
+        
 
-            CheckDecisionAction(stateMachine);
-
-            CheckTransition(stateMachine);
-        }
-
-        public void DoActions(StateMachine<T> stateMachine)
+        private void DoActions(StateMachine<T> stateMachine)
         {
             foreach (Action<T> action in _EarlyActions)
             {
@@ -161,67 +183,77 @@ namespace KimScor.StateMachine
             {
                 action.UpdateAction(stateMachine);
             }
+        }
+        private void DoPhysicsActions(StateMachine<T> stateMachine)
+        {
+            foreach (Action<T> action in _PhysisActions)
+            {
+                action.UpdateAction(stateMachine);
+            }
+        }
+
+        private void DoLateActions(StateMachine<T> stateMachine)
+        {
             foreach (Action<T> action in _LateActions)
             {
                 action.UpdateAction(stateMachine);
             }
         }
 
-        public void CheckTransition(StateMachine<T> stateMachine)
+
+        private void CheckTransition(StateMachine<T> stateMachine)
         {
             foreach (Transition<T> transition in _Transitions)
             {
                 transition.CheckTransition(stateMachine);
             }
         }
-        public void CheckDecisionAction(StateMachine<T> stateMachine)
+
+        private void TryConditionAction(StateMachine<T> stateMachine)
         {
-            for (int i = 0; i < _DecisionActions.Count; i++)
+            for (int i = 0; i < _ConditionActions.Count; i++)
             {
-                if (_DecisionActions[i].isOnce && stateMachine.isActive[i])
-                {
+                if (_ConditionActions[i].isOnce && stateMachine.WasActivateConditionActions[i])
                     continue;
-                }
 
-                bool isDecide = _DecisionActions[i].decisions.CheckDecisions(stateMachine);
-
+                bool isDecide = _ConditionActions[i].decisions.CheckDecisions(stateMachine);
 
                 if (isDecide)
                 {
-                    if (!stateMachine.isActive[i])
+                    if (!stateMachine.WasActivateConditionActions[i])
                     {
-                        foreach (Action<T> action in _DecisionActions[i].action)
+                        foreach (Action<T> action in _ConditionActions[i].action)
                         {
                             action.EnterAction(stateMachine);
                         }
                     }
 
-                    foreach (Action<T> action in _DecisionActions[i].action)
+                    foreach (Action<T> action in _ConditionActions[i].action)
                     {
                         action.UpdateAction(stateMachine);
                     }
 
-                    if (_DecisionActions[i].isOnce)
+                    if (_ConditionActions[i].isOnce)
                     {
-                        foreach (Action<T> action in _DecisionActions[i].action)
+                        foreach (Action<T> action in _ConditionActions[i].action)
                         {
                             action.ExitAction(stateMachine);
                         }
                     }
 
-                    stateMachine.isActive[i] = true;
+                    stateMachine.WasActivateConditionActions[i] = true;
                 }
                 else
                 {
-                    if (stateMachine.isActive[i])
+                    if (stateMachine.WasActivateConditionActions[i])
                     {
-                        foreach (Action<T> action in _DecisionActions[i].action)
+                        foreach (Action<T> action in _ConditionActions[i].action)
                         {
                             action.ExitAction(stateMachine);
                         }
                     }
 
-                    stateMachine.isActive[i] = false;
+                    stateMachine.WasActivateConditionActions[i] = false;
                 }
             }
         }

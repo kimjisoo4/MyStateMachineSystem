@@ -2,62 +2,103 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace KimScor.StateMachine
+namespace StudioScor.StateMachine
 {
-    [System.Serializable]
-    public class StateMachine<T> where T : MonoBehaviour
+    public class StateMachine<T> : MonoBehaviour where T : MonoBehaviour
     {
-        [Header(" 기본 상태 ")]
-        [SerializeField] private State<T> _DefaultState;
-        [Header(" 현재 상태 ")]
-        [SerializeField] private State<T> _CurrentState;
-        [Header(" 현재 상태의 지속 시간 ")]
-        [SerializeField] private float _StateTimeElapsed = 0;
-        [Header(" 빈 상태 ")]
-        [SerializeField] private State<T> _RemainState;
-        [Header(" 초기화 상태 ")]
-        [SerializeField] private State<T> _ResetState;
+        #region Event
+        public delegate void ChangedStateHandler(StateMachine<T> stateMachine, State<T> currentState, State<T> prevState);
+        #endregion
 
+        [Header(" [ State Machine ] ")]
+        [Tooltip(" Start/Default State.")]
+        [SerializeField] private State<T> _DefaultState;
+        [Tooltip(" Remain Current State. ")]
+        [SerializeField] private State<T> _RemainState;
+        [Tooltip(" Transition Default State.")]
+        [SerializeField] private State<T> _ResetState;
+        
+        [Space(5f)]
+        [SerializeField] private T _Context;
+        public T Context => _Context;
+        
+        private bool _WasSetup = false;
+        private State<T> _CurrentState;
+        private float _StateTimeElapsed = 0;
+        private float _DeltaTime;
+        private float _FixedDeltaTime;
+        
+        [HideInInspector] public bool[] WasActivateConditionActions;
 
         public State<T> CurrentState => _CurrentState;
-        [HideInInspector] public bool[] isActive;
-
-        [SerializeField] private T _Owner;
-        public T Owner => _Owner;
-
-        private float _DeltaTime;
-
-        public StateMachine()
-        {
-
-        }
-        public StateMachine(T owner, State<T> defaultState, State<T> remainState, State<T> resetState)
-        {
-            _DefaultState = defaultState;
-            _RemainState = remainState;
-            _ResetState = resetState;
-            _Owner = owner;
-
-            TransitionToState(_DefaultState);
-        }
-
         public float DeltaTime => _DeltaTime;
+        public float FixedDeltaTime => _FixedDeltaTime;
         public float StateTimeElapsed => _StateTimeElapsed;
 
-        public void SetOwner(T newOwner)
-        {
-            _Owner = newOwner;
+        public event ChangedStateHandler OnChangedState;
 
-            TransitionToState(_DefaultState);
+#if UNITY_EDITOR
+        private void OnDrawGizmos()
+        {
+            if (!_CurrentState || !gameObject.activeInHierarchy)
+                return;
+
+            Gizmos.color = _CurrentState.Color;
+            Gizmos.DrawWireSphere(transform.position + Vector3.up * 2f, 0.5f);
+
+            _CurrentState.DrawGizmos(this);
+        }
+        private void OnDrawGizmosSelected()
+        {
+            if (!_CurrentState || !gameObject.activeInHierarchy)
+                return;
+
+            Gizmos.color = _CurrentState.Color;
+            Gizmos.DrawSphere(transform.position + Vector3.up * 2f, 0.5f);
+
+            _CurrentState.DrawGizmosSelected(this);
+        }
+#endif
+
+        private void Awake()
+        {
+            if (!_WasSetup)
+                SetupStateMachine();
         }
 
-        public void UpdateStateMachine(float deltaTime)
+        private void SetupStateMachine()
         {
-            _DeltaTime = deltaTime;
+            if (_WasSetup)
+                return;
+
+            _WasSetup = true;
+
+            if (Context)
+            {
+                _Context = GetComponent<T>();
+            }
+
+            TransitionToState(_DefaultState);
+
+            OnSetup();
+        }
+
+        protected virtual void OnSetup() { }
+
+
+        private void Update()
+        {
+            _DeltaTime = Time.deltaTime;
 
             _StateTimeElapsed += _DeltaTime;
 
             _CurrentState.UpdateState(this);
+        }
+        private void FixedUpdate()
+        {
+            _FixedDeltaTime = Time.fixedDeltaTime;
+
+            _CurrentState.UpdatePhysicsState(this);
         }
 
         public void TransitionToDefaultState()
@@ -95,14 +136,24 @@ namespace KimScor.StateMachine
                 _CurrentState.ExitState(this);
             }
 
+            var prevState = _CurrentState;
+
             _StateTimeElapsed = 0f;
 
             _CurrentState = nextState;
 
+            WasActivateConditionActions = new bool[_CurrentState.GetConditionActionCount];
+
             _CurrentState.EnterState(this);
 
-            isActive = new bool[_CurrentState.GetDecisionActionCount];
-
+            Callback_OnChangedState(prevState);
         }
+
+        #region Callback
+        protected void Callback_OnChangedState(State<T> prevState)
+        {
+            OnChangedState?.Invoke(this, _CurrentState, prevState);
+        }
+        #endregion
     }
 }

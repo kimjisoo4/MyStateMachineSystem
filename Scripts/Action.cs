@@ -4,7 +4,7 @@ using UnityEditor;
 
 using System.Diagnostics;
 
-namespace KimScor.StateMachine
+namespace StudioScor.StateMachine
 {
     public abstract class Action<T> : ScriptableObject where T : MonoBehaviour
     {
@@ -14,12 +14,12 @@ namespace KimScor.StateMachine
 
 
         [Conditional("UNITY_EDITOR")]
-        public virtual void DrawGizmos(Transform transform)
+        public virtual void DrawGizmos(StateMachine<T> stateMachine)
         {
 
         }
         [Conditional("UNITY_EDITOR")]
-        public virtual void DrawGizmosSelected(Transform transform)
+        public virtual void DrawGizmosSelected(StateMachine<T> stateMachine)
         {
 
         }
