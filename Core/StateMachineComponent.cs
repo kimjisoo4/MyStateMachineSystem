@@ -1,39 +1,34 @@
 ﻿using UnityEngine;
+using StudioScor.Utilities;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
 namespace StudioScor.StateMachine
 {
-    public class StateMachine<T> : MonoBehaviour where T : MonoBehaviour
+    public class StateMachineComponent : BaseMonoBehaviour
     {
         #region Event
-        public delegate void ChangedStateHandler(StateMachine<T> stateMachine, State<T> currentState, State<T> prevState);
+        public delegate void ChangedStateHandler(StateMachineComponent stateMachine, State currentState, State prevState);
         #endregion
 
         [Header(" [ State Machine ] ")]
         [Tooltip(" Start/Default State.")]
-        [SerializeField] private State<T> _DefaultState;
+        [SerializeField] private State _DefaultState;
         [Tooltip(" Remain Current State. ")]
-        [SerializeField] private State<T> _RemainState;
+        [SerializeField][ SReadOnlyWhenPlaying] private State _RemainState;
         [Tooltip(" Transition Default State.")]
-        [SerializeField] private State<T> _ResetState;
+        [SerializeField][ SReadOnlyWhenPlaying] private State _ResetState;
         
-        [Space(5f)]
-        [SerializeField] private T _Context;
-        public T Context => _Context;
-        
-        private bool _WasSetup = false;
-        private State<T> _CurrentState;
+        private State _CurrentState;
         private float _StateTimeElapsed = 0;
         private float _DeltaTime;
         private float _FixedDeltaTime;
-        
-        [HideInInspector] public bool[] WasActivateConditionActions;
 
-        public State<T> CurrentState => _CurrentState;
+        public State CurrentState => _CurrentState;
         public float DeltaTime => _DeltaTime;
         public float FixedDeltaTime => _FixedDeltaTime;
-        public float StateTimeElapsed => _StateTimeElapsed;
+        public float StateElapsed => _StateTimeElapsed;
 
         public event ChangedStateHandler OnChangedState;
 
@@ -62,24 +57,16 @@ namespace StudioScor.StateMachine
 
         private void Awake()
         {
-            if (!_WasSetup)
-                SetupStateMachine();
+            SetupStateMachine();
+        }
+
+        private void Start()
+        {
+            TransitionToState(_DefaultState);
         }
 
         private void SetupStateMachine()
         {
-            if (_WasSetup)
-                return;
-
-            _WasSetup = true;
-
-            if (Context)
-            {
-                _Context = GetComponent<T>();
-            }
-
-            TransitionToState(_DefaultState);
-
             OnSetup();
         }
 
@@ -93,6 +80,7 @@ namespace StudioScor.StateMachine
             _StateTimeElapsed += _DeltaTime;
 
             _CurrentState.UpdateState(this);
+
         }
         private void FixedUpdate()
         {
@@ -100,13 +88,19 @@ namespace StudioScor.StateMachine
 
             _CurrentState.UpdatePhysicsState(this);
         }
+        private void LateUpdate()
+        {
+            _DeltaTime = Time.deltaTime;
+
+            _CurrentState.UpdateLateState(this);
+        }
 
         public void TransitionToDefaultState()
         {
             TransitionToState(_DefaultState);
         }
 
-        public void TransitionToState(State<T> nextState)
+        public void TransitionToState(State nextState)
         {
             if (nextState == null)
                 return;
@@ -129,7 +123,7 @@ namespace StudioScor.StateMachine
 
             }        
         }
-        private void Transition(State<T> nextState)
+        private void Transition(State nextState)
         {
             if (_CurrentState != null)
             {
@@ -142,15 +136,13 @@ namespace StudioScor.StateMachine
 
             _CurrentState = nextState;
 
-            WasActivateConditionActions = new bool[_CurrentState.GetConditionActionCount];
-
             _CurrentState.EnterState(this);
 
             Callback_OnChangedState(prevState);
         }
 
         #region Callback
-        protected void Callback_OnChangedState(State<T> prevState)
+        protected void Callback_OnChangedState(State prevState)
         {
             OnChangedState?.Invoke(this, _CurrentState, prevState);
         }
