@@ -35,6 +35,12 @@ namespace StudioScor.StateMachine
 
             Log("Delay Time - " + delay.ToString("N1"));
         }
+
+        public override void ExitDecide(StateMachineComponent stateMachine)
+        {
+            _Data.Remove(stateMachine);
+        }
+
         public override bool Decide(StateMachineComponent stateMachine)
         {
             float delay = _Data[stateMachine];

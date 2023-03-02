@@ -2,7 +2,6 @@
 using StudioScor.Utilities;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 
 namespace StudioScor.StateMachine
 {
@@ -15,11 +14,12 @@ namespace StudioScor.StateMachine
         [Header(" [ State Machine ] ")]
         [Tooltip(" Start/Default State.")]
         [SerializeField] private State _DefaultState;
+        [SerializeField] private BlackBoard _BlackBoard;
         [Tooltip(" Remain Current State. ")]
         [SerializeField][ SReadOnlyWhenPlaying] private State _RemainState;
         [Tooltip(" Transition Default State.")]
         [SerializeField][ SReadOnlyWhenPlaying] private State _ResetState;
-        
+
         private State _CurrentState;
         private float _StateTimeElapsed = 0;
         private float _DeltaTime;
@@ -29,6 +29,8 @@ namespace StudioScor.StateMachine
         public float DeltaTime => _DeltaTime;
         public float FixedDeltaTime => _FixedDeltaTime;
         public float StateElapsed => _StateTimeElapsed;
+
+        public BlackBoard BlackBoard => _BlackBoard;
 
         public event ChangedStateHandler OnChangedState;
 
@@ -59,6 +61,15 @@ namespace StudioScor.StateMachine
         {
             SetupStateMachine();
         }
+        private void OnDestroy()
+        {
+            if (_CurrentState != null)
+            {
+                _CurrentState.ExitState(this);
+            }
+
+            _BlackBoard.Remove(this);
+        }
 
         private void Start()
         {
@@ -67,10 +78,19 @@ namespace StudioScor.StateMachine
 
         private void SetupStateMachine()
         {
+            _BlackBoard.Create(this);
+
             OnSetup();
+        }
+        public void ResetStateMachine()
+        {
+            _BlackBoard.Clear(this);
+
+            OnReset();
         }
 
         protected virtual void OnSetup() { }
+        protected virtual void OnReset() { }
 
 
         private void Update()
