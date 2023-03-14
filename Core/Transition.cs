@@ -23,14 +23,14 @@ namespace StudioScor.StateMachine
 
             if (_True)
             {
-                transitionName += _True.StateName;
+                transitionName += _True.Name;
             }
 
             transitionName += " | ";
 
             if (_False)
             {
-                transitionName += _False.StateName;
+                transitionName += _False.Name;
             }
 
             transitionName += " [F]";

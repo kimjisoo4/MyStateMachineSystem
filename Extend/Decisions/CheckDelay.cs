@@ -14,40 +14,42 @@ namespace StudioScor.StateMachine
         [SerializeField][SCondition(nameof(_UseRange))] private float _MinRange = -0.5f;
         [SerializeField][SCondition(nameof(_UseRange))] private float _MaxRange = 0.5f;
 
+        private Dictionary<StateMachineComponent, float> _Datas;
 
-        private Dictionary<StateMachineComponent, float> _Data;
+        protected override void OnReset()
+        {
+            base.OnReset();
+
+            _Datas = null;
+        }
 
         public override void EnterDecide(StateMachineComponent stateMachine)
         {
-            if (_Data is null)
-                _Data = new Dictionary<StateMachineComponent, float>();
+            if (_Datas is null)
+                _Datas = new();
 
             float delay = _UseRange ? _Delay + Random.Range(_MinRange, _MaxRange) : _Delay;
-            
-            if (_Data.ContainsKey(stateMachine))
-            {
-                _Data[stateMachine] = delay;
-            }
-            else
-            {
-                _Data.Add(stateMachine, delay);
-            }
+
+            _Datas.TryAdd(stateMachine, delay);
 
             Log("Delay Time - " + delay.ToString("N1"));
         }
 
         public override void ExitDecide(StateMachineComponent stateMachine)
         {
-            _Data.Remove(stateMachine);
+            _Datas.Remove(stateMachine);
         }
 
         public override bool Decide(StateMachineComponent stateMachine)
         {
-            float delay = _Data[stateMachine];
+            if (_Datas.TryGetValue(stateMachine, out float delay))
+            {
+                Log("State Elapesed - " + stateMachine.StateElapsed.ToString("N1") + " Delay Time - " + delay.ToString("N1"));
 
-            Log("State Elapesed - " + stateMachine.StateElapsed.ToString("N1") + " Delay Time - " + delay.ToString("N1"));
+                return stateMachine.StateElapsed > delay != _IsInverse;
+            }
 
-            return stateMachine.StateElapsed > delay != _IsInverse;
+            return _IsInverse;
         }
     }
 }

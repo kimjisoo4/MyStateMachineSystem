@@ -35,13 +35,19 @@ namespace StudioScor.StateMachine
         public event ChangedStateHandler OnChangedState;
 
 #if UNITY_EDITOR
+        [Header(" [ Debug ] ")]
+        public Vector3 DebugOffset = new Vector3(0, 2, 0);
+        public float DebugRadius = 0.5f;
+        private GUIStyle _GuiStyle;
+        private Camera _Camera;
+
         private void OnDrawGizmos()
         {
             if (!_CurrentState || !gameObject.activeInHierarchy)
                 return;
 
             Gizmos.color = _CurrentState.Color;
-            Gizmos.DrawWireSphere(transform.position + Vector3.up * 2f, 0.5f);
+            Gizmos.DrawWireSphere(transform.TransformPoint(DebugOffset), DebugRadius);
 
             _CurrentState.DrawGizmos(this);
         }
@@ -51,9 +57,39 @@ namespace StudioScor.StateMachine
                 return;
 
             Gizmos.color = _CurrentState.Color;
-            Gizmos.DrawSphere(transform.position + Vector3.up * 2f, 0.5f);
+            Gizmos.DrawSphere(transform.TransformPoint(DebugOffset), DebugRadius);
 
             _CurrentState.DrawGizmosSelected(this);
+        }
+
+        private void OnGUI()
+        {
+            if (!UseDebug)
+                return;
+
+            if (_CurrentState is null)
+                return;
+
+            if(_GuiStyle is null)
+            {
+                _GuiStyle = new();
+
+                _GuiStyle.normal.textColor = Color.white;
+                _GuiStyle.alignment = TextAnchor.MiddleCenter;
+                _GuiStyle.fontStyle = FontStyle.Bold;
+            }
+
+            if(!_Camera)
+            {
+                _Camera = Camera.main;
+
+                return;
+            }
+
+            Vector3 worldPosition = _Camera.WorldToScreenPoint(transform.TransformPoint(DebugOffset));
+            Rect rect = new Rect(worldPosition.x, Screen.height - worldPosition.y, 0f, 0f);
+            
+            GUI.Label(rect, _CurrentState.Name, _GuiStyle);
         }
 #endif
 
@@ -164,6 +200,8 @@ namespace StudioScor.StateMachine
         #region Callback
         protected void Callback_OnChangedState(State prevState)
         {
+            Log($"On Changed State - Current [ {(_CurrentState ? _CurrentState.Name : "Empty")} ] Prev [ {(prevState ? prevState.Name : "Empty" )} ]");
+
             OnChangedState?.Invoke(this, _CurrentState, prevState);
         }
         #endregion

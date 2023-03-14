@@ -14,11 +14,17 @@ namespace StudioScor.StateMachine
 
         public void OnAfterDeserialize()
         {
-            _BlackBoardValues = new();
+            OnReset();
         }
         #endregion
 
-        
+        protected override void OnReset()
+        {
+            base.OnReset();
+
+            _BlackBoardValues = null;
+        }
+
         public bool TryGetValue(StateMachineComponent stateMachine, out T value)
         {
             if (_BlackBoardValues.ContainsKey(stateMachine) && _BlackBoardValues[stateMachine].TryGetValue(out value))

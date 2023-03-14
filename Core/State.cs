@@ -10,10 +10,8 @@ namespace StudioScor.StateMachine
     public class State : BaseScriptableObject
     {
         [Header(" [ State ] ")]
-#if UNITY_EDITOR
-        public string StateName = "New State";
+        public string Name = "New State";
         public Color Color = Color.white;
-#endif
 
         [Space(5f)]
         [SerializeField] private List<Action> _EarlyActions;
