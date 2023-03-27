@@ -13,11 +13,13 @@ namespace StudioScor.StateMachine
         public string Name = "New State";
         public Color Color = Color.white;
 
-        [Space(5f)]
+        [Header(" [ Actions ] ")]
         [SerializeField] private List<Action> _EarlyActions;
         [SerializeField] private List<Action> _ProcessActions;
-        [SerializeField] private List<Action> _PhysisActions;
         [SerializeField] private List<Action> _LateActions;
+
+        [Header(" [ Physics Actions ] ")]
+        [SerializeField] private List<Action> _PhysisActions;
 
         [Header(" [ Transitions ] ")]
         [SerializeField] private List<Transition> _Transitions;
@@ -82,17 +84,14 @@ namespace StudioScor.StateMachine
         public void UpdateState(StateMachineComponent stateMachine)
         {
             DoActions(stateMachine);
-        }
-        public void UpdatePhysicsState(StateMachineComponent stateMachine)
-        {
-            DoPhysicsActions(stateMachine);
-        }
-        public void UpdateLateState(StateMachineComponent stateMachine)
-        {
-            DoLateActions(stateMachine);
 
             CheckTransition(stateMachine);
         }
+        public void PhysicsUpdateState(StateMachineComponent stateMachine)
+        {
+            DoPhysicsActions(stateMachine);
+        }
+
         public void ExitState(StateMachineComponent stateMachine)
         {
             ExitTransitions(stateMachine);
@@ -163,18 +162,14 @@ namespace StudioScor.StateMachine
             {
                 action.UpdateAction(stateMachine);
             }
-        }
-        private void DoPhysicsActions(StateMachineComponent stateMachine)
-        {
-            foreach (Action action in _PhysisActions)
+            foreach (Action action in _LateActions)
             {
                 action.UpdateAction(stateMachine);
             }
         }
-
-        private void DoLateActions(StateMachineComponent stateMachine)
+        private void DoPhysicsActions(StateMachineComponent stateMachine)
         {
-            foreach (Action action in _LateActions)
+            foreach (Action action in _PhysisActions)
             {
                 action.UpdateAction(stateMachine);
             }

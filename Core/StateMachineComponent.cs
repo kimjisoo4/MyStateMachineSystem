@@ -132,23 +132,15 @@ namespace StudioScor.StateMachine
         private void Update()
         {
             _DeltaTime = Time.deltaTime;
-
             _StateTimeElapsed += _DeltaTime;
 
             _CurrentState.UpdateState(this);
-
         }
         private void FixedUpdate()
         {
             _FixedDeltaTime = Time.fixedDeltaTime;
 
-            _CurrentState.UpdatePhysicsState(this);
-        }
-        private void LateUpdate()
-        {
-            _DeltaTime = Time.deltaTime;
-
-            _CurrentState.UpdateLateState(this);
+            _CurrentState.PhysicsUpdateState(this);
         }
 
         public void TransitionToDefaultState()
